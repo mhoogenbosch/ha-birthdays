@@ -16,6 +16,7 @@ from custom_components.birthdays.const import (
     CONF_DATE_OF_BIRTH,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 
 from .conftest import setup_integration
@@ -86,3 +87,19 @@ async def test_state_updates_at_midnight(
     assert hass.states.get(DAYS_UNTIL).state == "0"
     assert hass.states.get(IS_BIRTHDAY).state == "on"
     assert hass.states.get(AGE).state == "6"
+
+
+async def test_days_until_has_no_decimals(
+    hass: HomeAssistant, mock_config_entry: MockConfigEntry
+) -> None:
+    """A whole number of days must not render as "352.00 d".
+
+    Duration is a convertible device class, so Home Assistant assigns it a
+    default display precision of 2 unless the entity suggests otherwise.
+    """
+    await setup_integration(hass, mock_config_entry)
+
+    entity_registry = er.async_get(hass)
+    entry = entity_registry.async_get(DAYS_UNTIL)
+
+    assert entry.options["sensor"]["suggested_display_precision"] == 0

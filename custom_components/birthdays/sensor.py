@@ -39,6 +39,10 @@ SENSORS: tuple[BirthdaySensorEntityDescription, ...] = (
         translation_key="days_until",
         device_class=SensorDeviceClass.DURATION,
         native_unit_of_measurement=UnitOfTime.DAYS,
+        # Duration is a convertible device class, for which Home Assistant
+        # defaults to 2 decimals — a whole number of days must not render as
+        # "352.00 d".
+        suggested_display_precision=0,
         value_fn=lambda info: info.days_until,
     ),
     BirthdaySensorEntityDescription(

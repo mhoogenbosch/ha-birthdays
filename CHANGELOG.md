@@ -5,6 +5,13 @@ All notable changes to this fork are documented here. The format is based on
 
 ## [Unreleased]
 
+## [2.0.0-mh.2] - 2026-08-17
+
+### Fixed
+- The days-until sensor rendered as `352.00 d`. Duration is a convertible
+  device class, for which Home Assistant assigns a default display precision of
+  2; the sensor now suggests 0 decimals.
+
 ## [2.0.0-mh.1] - 2026-08-17
 
 First release of the fork. The integration is now configured through the user
@@ -51,5 +58,6 @@ interface instead of YAML.
 - The translated `day`/`days` unit of measurement. The days-until sensor is a
   duration sensor in days, which Home Assistant formats itself.
 
-[Unreleased]: https://github.com/mhoogenbosch/ha-birthdays/compare/v2.0.0-mh.1...HEAD
+[Unreleased]: https://github.com/mhoogenbosch/ha-birthdays/compare/v2.0.0-mh.2...HEAD
+[2.0.0-mh.2]: https://github.com/mhoogenbosch/ha-birthdays/compare/v2.0.0-mh.1...v2.0.0-mh.2
 [2.0.0-mh.1]: https://github.com/mhoogenbosch/ha-birthdays/compare/v1.3.0...v2.0.0-mh.1
