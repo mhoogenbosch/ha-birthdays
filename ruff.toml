@@ -1,0 +1,22 @@
+target-version = "py313"
+line-length = 88
+
+[lint]
+select = ["E", "F", "W", "I", "UP", "B", "D", "RUF"]
+ignore = [
+    "D203", # incompatible with D211
+    "D213", # incompatible with D212
+    "E501", # line length is handled by the formatter
+]
+
+[lint.per-file-ignores]
+"tests/*" = ["D103"]
+
+[lint.isort]
+# Match the import style used by Home Assistant core.
+force-sort-within-sections = true
+known-first-party = ["homeassistant", "custom_components", "tests"]
+combine-as-imports = true
+
+[lint.pydocstyle]
+convention = "pep257"

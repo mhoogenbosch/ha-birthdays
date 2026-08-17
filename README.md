@@ -1,259 +1,148 @@
 # Birthdays
-This is a HomeAssistant component for tracking birthdays, where the state of each birthday is equal to how many days are left. All birthdays are updated at midnight.
+
+A Home Assistant integration that tracks birthdays: how many days are left, the
+date of the next one, everyone's age, and a calendar you can put on a dashboard.
+Everything is recalculated at local midnight.
+
+This is a fork of [Miicroo/ha-birthdays](https://github.com/Miicroo/ha-birthdays)
+with a user interface: birthdays are added and edited through **Settings →
+Devices & services**, so no YAML is needed. Existing YAML configuration is
+imported automatically.
 
 ## Installation
 
-### HACS (recommended)
-1. Go to integrations
+### HACS
+1. Go to HACS → Integrations
 2. Press the dotted menu in the top right corner
 3. Choose custom repositories
-4. Add the URL to this repository
-5. Choose category `Integration`
-6. Click add
+4. Add `https://github.com/mhoogenbosch/ha-birthdays`, category `Integration`
+5. Install and restart Home Assistant
 
 ### Manual
-1. In your homeassistant config directory, create a new directory. The path should look like this: **my-ha-config-dir/custom_components
-2. Copy the contents of /custom_components in this git-repo to your newly created directory in HA
+Copy `custom_components/birthdays` into your `config/custom_components`
+directory and restart Home Assistant.
 
 ## Set up
-Set up the component:
-```yaml
-# Example configuration.yaml entry
-birthdays:
-  - name: 'Frodo Baggins'
-    date_of_birth: 1921-09-22
-  - name: 'Bilbo Baggins'
-    date_of_birth: 1843-09-22
-  - name: Elvis
-    date_of_birth: 1935-01-08
-    icon: 'mdi:music'
-```
 
-You can also add a custom `unique_id` and attributes to each birthday, for instance to add an icon or other metadata.
-```yaml
-  - unique_id: bond_james_bond
-    name: James Bond
-    date_of_birth: 1920-05-25
-    icon: 'mdi:pistol'
-    attributes:
-      occupation: "Agent"
-      license_to_kill: "Yes"
-  - unique_id: einstein
-    name: 'Albert Einstein'
-    date_of_birth: 1879-03-14
-    icon: 'mdi:lightbulb-on'
-    attributes:
-      occupation: 'Theoretical physicist'
-      iq: 'Genius level'
-      sense_of_humor: 'Einsteinian'
-```
-Restart homeassistant
+Add the integration through **Settings → Devices & services → Add integration →
+Birthdays**. Then use **Add birthday** on the integration page for each person:
+their name, date of birth, and optionally an icon.
+
+Every person can be edited or removed afterwards without restarting Home
+Assistant.
 
 ## Entities
-All entities that do not have a specified `unique_id` are exposed using the format `birthdays.{name}`. Any character that does not fit the pattern `a-z`, `A-Z`, `0-9`, or `_` will be changed. For instance `Frodo Baggins` will get entity_id `frodo_baggins`, and Swedish names like [`Sven-Göran Eriksson`](https://sv.wikipedia.org/wiki/Sven-G%C3%B6ran_Eriksson) will get entity_id `sven_goran_eriksson`.
 
-## Custom attributes
-You can add a unique id and custom attributes to each birthday, for instance to add an icon or other metadata.
-To do this, add a dictionary under the `attributes` key in the configuration (see example above). The dictionary can contain any key-value pairs you want, and will be exposed as attributes on the entity.
-Fetching the attributes can be done using `state_attr` in a template, for instance `{{ state_attr('birthdays.einstein', 'occupation') }}` will return `Theoretical physicist`.
+Each person becomes a device with four entities. Entity ids follow the language
+of your Home Assistant installation, so a Dutch installation gets
+`sensor.frodo_baggins_dagen_tot_verjaardag`.
 
-### Templated attributes
-Attributes to an entity can also be a template. To do calculations based on data from the entity, use the `this`-keyword.
-Be aware that if a template that cannot be correctly parsed it can lead to the entity not being loaded, 
-so if your entity is suddenly gone after adding a templated attribute, please check the logs.
+| Entity | Example | Description |
+| --- | --- | --- |
+| `sensor.<name>_days_until_birthday` | `14` | Days left until the next birthday |
+| `sensor.<name>_birthday` | `2027-09-22` | Date of the next birthday |
+| `sensor.<name>_age` | `44` | Current age |
+| `binary_sensor.<name>_birthday_today` | `on` | Whether they are celebrating today |
 
-Example calculating age in number of days:
-```yaml
-birthdays:
-  - name: 'Frodo Baggins'
-    date_of_birth: 1921-09-22
-    attributes:
-      days_since_birth: '{{ ((as_timestamp(now()) - as_timestamp(this.date_of_birth)) | int /60/1440) | int }}'
-```
+The days-until sensor carries the attributes `date_of_birth` and
+`age_at_next_birthday`, as version 1 did.
 
-Properties of `this` that can be used:
-* name
-* unique_id
-* state
-* icon
-* date_of_birth
-* unit_of_measurement
+On top of that there is a single `calendar.birthdays` entity holding an all-day
+event for every person, for every year. This works with the standard calendar
+card and with cards such as
+[calendar-card-pro](https://github.com/alexpfau/calendar-card-pro).
 
-Note: Don't use `this.extra_state_attributes`, as that might trigger an infinite loop.
+People born on 29 February celebrate on 1 March in non-leap years.
 
-### Global attributes:
-It is possible to add global attributes that will be added to all birthdays. Global attributes work just the same as other attributes,
-and can thus also be templated.
+## Automations
 
-This example will add the attribute `days_since_birth` on all entities:
-```yaml
-# Example configuration.yaml entry
-birthdays:
-  config:
-    attributes:
-      days_since_birth: '{{ ((as_timestamp(now()) - as_timestamp(this.date_of_birth)) | int /60/1440) | int }}'
-  birthdays:
-    - name: 'Frodo Baggins'
-      date_of_birth: 1921-09-22
-    - name: 'Bilbo Baggins'
-      date_of_birth: 1843-09-22
-    - name: Elvis
-      date_of_birth: 1935-01-08
-      icon: 'mdi:music'
-```
+Use the binary sensor:
 
-Note that global attributes will be overridden by entity specific attributes.
-
-## Automation
-All birthdays are updated at midnight, and when a birthday occurs an event is sent on the HA bus that can be used for automations. The event is called `birthday` and contains the data `name` and `age`. Note that there will be two events fired if two persons have the same birthday.
-
-Sending a push notification for each birthday (with PushBullet) looks like this:
-```yaml
-automation:
-  trigger:
-    platform: event
-    event_type: 'birthday'
-    action:
-      service: notify.pushbullet
-      data_template:
-        title: 'Birthday!'
-        message: "{{ trigger.event.data.name }} turns {{ trigger.event.data.age }} today!"
-```
-
-If you want to trigger an automation based on a specific name or age, you can use the following:
-```yaml
-automation:
-  trigger:
-    platform: event
-    event_type: 'birthday'
-    event_data:
-      name: Kalle
-      # age: 40
-    action:
-      service: notify.pushbullet
-      data_template:
-        title: 'Birthday!'
-        message: "{{ trigger.event.data.name }} turns {{ trigger.event.data.age }} today!"
-```
-
-If you want to have a notification sent to you at a specific time (instead of midnight), you can use a custom templated sensor and a time trigger.
-Create the sensor:
-~~~yaml
-template:
-  - sensor:
-      - name: "Next birthday"
-        unique_id: next_birthday
-        state: >
-          {%- set ns = namespace(days=365) -%}
-          {%- for birthday in states.birthdays -%}
-            {%- set daysLeft = birthday.state | int -%}
-            {%- if daysLeft < ns.days -%}
-              {%- set ns.days = daysLeft -%}
-            {%- endif -%}
-          {%- endfor -%}
-          {{ ns.days }}
-        attributes:
-          names: >
-            {%- set ns = namespace(days=365, names=[]) -%}
-            {%- for birthday in states.birthdays -%}
-              {%- set daysLeft = birthday.state | int -%}
-              {%- if daysLeft < ns.days -%}
-                {%- set ns.days = daysLeft -%}
-              {%- endif -%}
-            {%- endfor -%}
-            {%- for birthday in states.birthdays -%}
-              {%- set daysLeft = birthday.state | int -%}
-              {%- if daysLeft == ns.days -%}
-                {%- set ns.names = ns.names + [birthday.attributes.friendly_name] -%}
-              {%- endif -%}
-            {%- endfor -%}
-  
-            {{ns.names | join(', ')}}
-          ages: >
-            {%- set ns = namespace(days=365, ages=[]) -%}
-            {%- for birthday in states.birthdays -%}
-              {%- set daysLeft = birthday.state | int -%}
-              {%- if daysLeft < ns.days -%}
-                {%- set ns.days = daysLeft -%}
-              {%- endif -%}
-            {%- endfor -%}
-            {%- for birthday in states.birthdays -%}
-              {%- set daysLeft = birthday.state | int -%}
-              {%- if daysLeft == ns.days -%}
-                {%- set ns.ages = ns.ages + [birthday.attributes.age_at_next_birthday] -%}
-              {%- endif -%}
-            {%- endfor -%}
-  
-            {{ns.ages | join(', ')}}
-          birthday_message: >
-            {%- set ns = namespace(days=365, messages=[]) -%}
-            {%- for birthday in states.birthdays -%}
-              {%- set daysLeft = birthday.state | int -%}
-              {%- if daysLeft < ns.days -%}
-                {%- set ns.days = daysLeft -%}
-              {%- endif -%}
-            {%- endfor -%}
-            {%- for birthday in states.birthdays -%}
-              {%- set daysLeft = birthday.state | int -%}
-              {%- if daysLeft == ns.days -%}
-                {%- set ns.messages = ns.messages + [birthday.attributes.friendly_name + ' fyller ' + (birthday.attributes.age_at_next_birthday | string) + ' idag!'] -%}
-              {%- endif -%}
-            {%- endfor -%}
-  
-            {{ns.messages | join('\n')}}
-~~~
-and the automation:
 ```yaml
 automation:
   alias: Happy birthday
-  trigger:
-  - platform: time
-    at: '19:00:00'
-  condition:
-  - condition: state
-    entity_id: sensor.next_birthday
-    state: '0'
-  action:
-  - service: persistent_notification.create
-    data_template:
-      title: 'Birthday!'
-      message: "{{ state_attr('sensor.next_birthday', 'birthday_message') }}"
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.frodo_baggins_birthday_today
+      to: "on"
+  actions:
+    - action: notify.mobile_app
+      data:
+        title: Birthday!
+        message: >-
+          {{ state_attr('sensor.frodo_baggins_days_until_birthday',
+             'age_at_next_birthday') }} years today!
 ```
 
-## Lovelace UI
-I use the birthdays as a simple entity list in lovelace, given the above example I use:
+Or trigger on the calendar, which fires for everybody and lets you pick the
+time of day with an offset:
+
 ```yaml
-# Example use in lovelace
-- type: entities
+automation:
+  alias: Birthdays today
+  triggers:
+    - trigger: calendar
+      entity_id: calendar.birthdays
+      event: start
+      offset: "09:00:00"
+  actions:
+    - action: notify.mobile_app
+      data:
+        title: Birthday!
+        message: "{{ trigger.calendar_event.summary }}"
+```
+
+The `birthday` event from version 1 still fires at midnight, with the data
+`name` and `age`:
+
+```yaml
+automation:
+  triggers:
+    - trigger: event
+      event_type: birthday
+  actions:
+    - action: notify.mobile_app
+      data:
+        message: "{{ trigger.event.data.name }} turns {{ trigger.event.data.age }} today!"
+```
+
+## Dashboard
+
+An auto-entities card listing everyone by days left:
+
+```yaml
+type: custom:auto-entities
+show_empty: false
+card:
+  type: entities
   title: Birthdays
-  show_header_toggle: false
-  entities:
-    - birthdays.frodo_baggins
-    - birthdays.bilbo_baggins
-    - birthdays.elvis
+filter:
+  include:
+    - entity_id: sensor.*_days_until_birthday
+sort:
+  method: state
+  numeric: true
 ```
 
-Another possibility is to use the auto-entities card. This allows you to sort the birthdays entered, an example:
-```yaml
-# Example using auto-entities
-- type: custom:auto-entities
-  show_empty: false
-  card:
-    title: Verjaardagen
-    type: entities
-    card_mod:
-      style: |
-        #states > * {
-          margin: 0 !important;
-        }
-  filter:
-    include:
-      - entity_id: birthdays*
-  sort:
-    method: state
-    ignore_case: false
-    reverse: false
-    numeric: true
-```
+## Upgrading from version 1
 
+On the first start after upgrading, every birthday in `configuration.yaml` is
+imported into the user interface and a repair notification tells you the YAML
+can go. Remove the `birthdays:` block and restart.
 
+Two things change:
+
+* The old `birthdays.<name>` entities are replaced by the `sensor.` and
+  `binary_sensor.` entities listed above. An integration with a user interface
+  cannot own a domain of its own. Dashboards and automations referring to
+  `birthdays.*` need to be updated.
+* `calendar.birthdays` keeps its entity id and needs no changes.
+
+The `unique_id` and `attributes` options from YAML are imported and keep
+working, including templated attributes. They are not editable in the user
+interface.
+
+Version 2 also fixes three bugs from version 1: a 29 February date of birth
+raised an error in non-leap years, the calendar only produced events for the
+current calendar year, and the next upcoming birthday was sorted as text so
+`10` came before `9`.

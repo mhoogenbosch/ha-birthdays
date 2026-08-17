@@ -1,8 +1,76 @@
 {
-    "config": {
-        "unit_of_measurement": {
-            "single_day": "dag",
-            "multiple_days": "dagen"
-        }
+  "config": {
+    "step": {
+      "user": {
+        "title": "Verjaardagen",
+        "description": "Voeg de integratie Verjaardagen toe. Daarna voeg je met \"Verjaardag toevoegen\" iedereen afzonderlijk toe."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Verjaardagen is al ingesteld. Voeg personen toe aan de bestaande vermelding."
     }
+  },
+  "config_subentries": {
+    "birthday": {
+      "entry_type": "Verjaardag",
+      "initiate_flow": {
+        "user": "Verjaardag toevoegen",
+        "reconfigure": "Verjaardag bewerken"
+      },
+      "step": {
+        "user": {
+          "title": "Verjaardag toevoegen",
+          "data": {
+            "name": "Naam",
+            "date_of_birth": "Geboortedatum",
+            "icon": "Pictogram"
+          },
+          "data_description": {
+            "date_of_birth": "De volledige geboortedatum, inclusief het jaar, zodat de leeftijd berekend kan worden."
+          }
+        },
+        "reconfigure": {
+          "title": "Verjaardag bewerken",
+          "data": {
+            "name": "Naam",
+            "date_of_birth": "Geboortedatum",
+            "icon": "Pictogram"
+          },
+          "data_description": {
+            "date_of_birth": "De volledige geboortedatum, inclusief het jaar, zodat de leeftijd berekend kan worden."
+          }
+        }
+      },
+      "error": {
+        "already_configured": "Er bestaat al een verjaardag met deze naam."
+      },
+      "abort": {
+        "reconfigure_successful": "Verjaardag bijgewerkt."
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "days_until": {
+        "name": "Dagen tot verjaardag"
+      },
+      "next_birthday": {
+        "name": "Verjaardag"
+      },
+      "age": {
+        "name": "Leeftijd"
+      }
+    },
+    "binary_sensor": {
+      "is_birthday": {
+        "name": "Jarig"
+      }
+    }
+  },
+  "issues": {
+    "deprecated_yaml": {
+      "title": "Verjaardagen in YAML is verouderd",
+      "description": "De {count} verjaardagen uit je `configuration.yaml` zijn overgezet naar de gebruikersinterface. Verwijder het `birthdays:`-blok uit `configuration.yaml` en herstart Home Assistant om deze melding te laten verdwijnen."
+    }
+  }
 }

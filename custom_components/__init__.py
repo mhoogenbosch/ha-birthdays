@@ -1,1 +1,1 @@
-""" Custom components module"""
+"""Custom components for testing."""

@@ -1,9 +1,14 @@
 {
     "domain": "birthdays",
     "name": "Birthdays",
-    "documentation": "https://github.com/Miicroo/ha-birthdays",
+    "codeowners": ["@Miicroo", "@mhoogenbosch"],
+    "config_flow": true,
     "dependencies": [],
-    "codeowners": ["@Miicroo"],
+    "documentation": "https://github.com/mhoogenbosch/ha-birthdays",
+    "integration_type": "service",
+    "iot_class": "calculated",
+    "issue_tracker": "https://github.com/mhoogenbosch/ha-birthdays/issues",
     "requirements": [],
-    "version": "1.3.0"
+    "single_config_entry": true,
+    "version": "2.0.0-mh.1"
 }

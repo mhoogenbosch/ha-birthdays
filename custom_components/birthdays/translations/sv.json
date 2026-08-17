@@ -1,8 +1,76 @@
 {
-    "config": {
-        "unit_of_measurement": {
-            "single_day": "dag",
-            "multiple_days": "dagar"
-        }
+  "config": {
+    "step": {
+      "user": {
+        "title": "Födelsedagar",
+        "description": "Lägg till integrationen Födelsedagar. Använd därefter \"Lägg till födelsedag\" för att lägga till varje person."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Födelsedagar är redan konfigurerad. Lägg till personer i den befintliga posten."
     }
+  },
+  "config_subentries": {
+    "birthday": {
+      "entry_type": "Födelsedag",
+      "initiate_flow": {
+        "user": "Lägg till födelsedag",
+        "reconfigure": "Redigera födelsedag"
+      },
+      "step": {
+        "user": {
+          "title": "Lägg till födelsedag",
+          "data": {
+            "name": "Namn",
+            "date_of_birth": "Födelsedatum",
+            "icon": "Ikon"
+          },
+          "data_description": {
+            "date_of_birth": "Hela födelsedatumet, inklusive år, så att åldern kan beräknas."
+          }
+        },
+        "reconfigure": {
+          "title": "Redigera födelsedag",
+          "data": {
+            "name": "Namn",
+            "date_of_birth": "Födelsedatum",
+            "icon": "Ikon"
+          },
+          "data_description": {
+            "date_of_birth": "Hela födelsedatumet, inklusive år, så att åldern kan beräknas."
+          }
+        }
+      },
+      "error": {
+        "already_configured": "Det finns redan en födelsedag med det här namnet."
+      },
+      "abort": {
+        "reconfigure_successful": "Födelsedagen har uppdaterats."
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "days_until": {
+        "name": "Dagar till födelsedag"
+      },
+      "next_birthday": {
+        "name": "Födelsedag"
+      },
+      "age": {
+        "name": "Ålder"
+      }
+    },
+    "binary_sensor": {
+      "is_birthday": {
+        "name": "Fyller år idag"
+      }
+    }
+  },
+  "issues": {
+    "deprecated_yaml": {
+      "title": "YAML-konfiguration för Födelsedagar är föråldrad",
+      "description": "De {count} födelsedagarna i din `configuration.yaml` har importerats till användargränssnittet. Ta bort `birthdays:`-blocket från `configuration.yaml` och starta om Home Assistant för att ta bort det här meddelandet."
+    }
+  }
 }
